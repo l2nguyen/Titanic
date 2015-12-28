@@ -10,6 +10,7 @@ setwd("/Users/Zelda/Data Science/GA/Homework/Titanic/")  # Set working directory
 
 library(rpart)
 library(randomForest)
+library(party)
 
 train <- read.csv("train.csv")  # Load train dataset
 test <- read.csv("test.csv")  # Load test dataset
@@ -116,9 +117,15 @@ summary(combo$FamilyID)
 train <- combo[1:891,]
 test <- combo[892:1309,]
 
+# Random forest
 fit <- randomForest(as.factor(Survived) ~ Pclass + Sex + Age + SibSp + Parch + Fare + Embarked + Title + FamilySize + FamilyID, data=train, importance=TRUE, ntree=2000)
 
 Prediction <- predict(fit, test)
 submit <- data.frame(PassengerId = test$PassengerId, Survived = Prediction)
 write.csv(submit, file = "firstforestR.csv", row.names = FALSE)
 
+# Conditional Inference trees
+fit <- cforest(as.factor(Survived) ~ Pclass + Sex + Age + SibSp + Parch + Fare + Embarked + Title + FamilySize + FamilyID, data = train, controls=cforest_unbiased(ntree=2000, mtry=3))
+
+Prediction <- predict(fit, test, OOB=TRUE, type = "response")
+submit2 <- data.frame(PassengerId = test$PassengerId, Survived = Prediction)
